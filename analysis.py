@@ -1,31 +1,28 @@
 """Analyze pickle files. REQUIRES PYTHON 2.7 (sorry). Call like this:
 
-`python analysis.py`
+    `python analysis.py`
 
-with `results` file in the correct path.
+with `results` file in the correct path, from `/nfs/diskstation/seita/clothsim`. NOTES:
 
-NOTES:
-
-The only episodes which I think have issues with lengths of the lists is tier1,
-color, episode 000, which has duplicate coverage.
-
-The number of actions should be one less than the number of images and coverage
-statistics.
-
-At some point on September 6, I made the episode length 10.
-
-Starting September 8 and beyond for the last week:
-  - Follow protocol of starting the cloth, then randomizing which of RGB or
-    depth is applied. Then we recreate the cloth as close as we can, and do the
-    other experiment.
-  - We use the de-noising that Ryan Hoque suggested.
-
-Starting September 9, I'm using a lighter blue cloth, which should more closely
-match what we have in simulation.
-
-NOTE: just realized, if doing 9 actions, such as in:
+(1)  The number of actions should be one less than the number of images and
+coverage statistics. However, sometimes when doing 9 actions, such as in:
     results/tier2_color/ep_020_2019-09-13-11-52.pkl
 for some reason it records the coverage twice. Oops! Let's correct for that.
+
+(2) On September 6, I made the episode length 10, so I IGNORE all prior episodes.
+
+(3) Starting September 8 and beyond for the last week:
+
+- Follow protocol of starting the cloth, then randomizing which of RGB or
+  depth is applied. Then we recreate the cloth as close as we can, and do the
+  other experiment.
+- We use the de-noising that Ryan Hoque suggested.
+- As of February 2020 when we have RGBD  baselines, since those are done after
+  the fact, we have to recreate the images as accurately as we can from the
+  code I have which will automatically save / visualize images.
+
+(4) Starting September 9, I'm using a lighter blue cloth, which should more
+closely match what we have in simulation.
 """
 import os
 import cv2
@@ -44,7 +41,6 @@ def _criteria(x, MONTH_BEGIN=9, DAY_BEGIN=7):
 
     I started on the 6th but changed the protocol a bit afterwards.
     """
-
     # Get only the pickle file name.
     x = os.path.basename(x)
 
