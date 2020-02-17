@@ -36,7 +36,7 @@ from collections import defaultdict
 SAVE_IMAGES = True
 
 
-def _criteria(x, MONTH_BEGIN=9, DAY_BEGIN=7):
+def _criteria(x, YEAR, MONTH_BEGIN=9, DAY_BEGIN=7):
     """Filter older entries, `x` is full path.
 
     I started on the 6th but changed the protocol a bit afterwards.
@@ -57,11 +57,14 @@ def _criteria(x, MONTH_BEGIN=9, DAY_BEGIN=7):
         date = (ss[2]).split('-')
         assert len(date) == 5, date
         year, month, day = int(date[0]), int(date[1]), int(date[2])
-        assert year == 2019, year
-        assert month == 9, month
-        #print(x, date, year, month, day, day >= DAY_BEGIN)
-        begin = day >= DAY_BEGIN
-        return begin
+        assert year == YEAR, year
+        if year == 2019:
+            assert month == 9, month
+            #print(x, date, year, month, day, day >= DAY_BEGIN)
+            begin = day >= DAY_BEGIN
+            return begin
+        else:
+            return True
 
 
 def analyze_single(pth, episode_idx=None):
@@ -80,7 +83,7 @@ def analyze_single(pth, episode_idx=None):
         cv2.imwrite(pth_d, d_img)
 
 
-def analyze_group(head):
+def analyze_group(head, year):
     """Go through all experiments of a certain condition."""
     ep_files = sorted([join(head,x) for x in os.listdir(head) if x[-4:]=='.pkl'])
     ss = defaultdict(list)
@@ -91,7 +94,7 @@ def analyze_group(head):
         os.makedirs(image_path)
 
     for ep in ep_files:
-        if not _criteria(ep):
+        if not _criteria(ep, year):
             print('SKIPPING {}; it is an older trial.'.format(ep))
             continue
         num_counted += 1
@@ -119,6 +122,7 @@ def analyze_group(head):
             ss['avg'].append( np.mean(data['coverage'][1:]) )
         ss['beg'].append( data['coverage'][0] )
         ss['end'].append( data['coverage'][-1] )
+        ss['len'].append( len(data['actions']) )
 
         # Save images here.
         nc = num_counted  # Use as an episode index, sort of ...
@@ -132,6 +136,8 @@ def analyze_group(head):
 
     # Multiply by 100 :-)
     for key in ss.keys():
+        if key == 'len':
+            continue
         ss[key] = np.array(ss[key]) * 100
     print('\nOverall stats across {} trials:'.format(num_counted))
     print('start: {:.1f} +/- {:.1f}'.format(np.mean(ss['beg']), np.std(ss['beg'])) )
@@ -145,7 +151,8 @@ def analyze_group(head):
             np.mean(ss['beg']),np.std(ss['beg']),
             np.mean(ss['end']),np.std(ss['end']),
             np.mean(ss['max']),np.std(ss['max']),
-            np.mean(ss['avg']),np.std(ss['avg']),
+            #np.mean(ss['avg']),np.std(ss['avg']),
+            np.mean(ss['len']),np.std(ss['len']),
     )
     #print(_str)
     return _str, num_counted
@@ -160,11 +167,11 @@ if __name__ == "__main__":
     print('ANALYZING TIER 1 COLOR AND DEPTH ON YELLOW')
     print('*********************************************\n')
     head = join('results', 'tier1_color_yellowcloth')
-    str0, nb0 = analyze_group(head)
+    str0, nb0 = analyze_group(head, year=2019)
     print('Over {} episodes. For LaTeX:\nstart, end, max, mean'.format(nb0))
     print('T1 Color on Yellow '+ str0 +'\n')
     head = join('results', 'tier1_depth_yellowcloth')
-    str0, nb0 = analyze_group(head)
+    str0, nb0 = analyze_group(head, year=2019)
     print('Over {} episodes. For LaTeX:\nstart, end, max, mean'.format(nb0))
     print('T1 Depth on Yellow '+ str0)
 
@@ -172,44 +179,57 @@ if __name__ == "__main__":
     print('ANALYZING TIER 1 COLOR')
     print('*********************************************\n')
     head = join('results', 'tier1_color')
-    str1, nb1 = analyze_group(head)
+    str1, nb1 = analyze_group(head, year=2019)
 
     print('\n*********************************************')
     print('ANALYZING TIER 1 DEPTH')
     print('*********************************************\n')
     head = join('results', 'tier1_depth')
-    str2, nb2 = analyze_group(head)
+    str2, nb2 = analyze_group(head, year=2019)
 
     print('\n*********************************************')
     print('ANALYZING TIER 2 COLOR')
     print('*********************************************\n')
     head = join('results', 'tier2_color')
-    str3, nb3 = analyze_group(head)
+    str3, nb3 = analyze_group(head, year=2019)
 
     print('\n*********************************************')
     print('ANALYZING TIER 2 DEPTH')
     print('*********************************************\n')
     head = join('results', 'tier2_depth')
-    str4, nb4 = analyze_group(head)
+    str4, nb4 = analyze_group(head, year=2019)
 
     print('\n*********************************************')
     print('ANALYZING TIER 3 COLOR')
     print('*********************************************\n')
     head = join('results', 'tier3_color')
-    str5, nb5 = analyze_group(head)
+    str5, nb5 = analyze_group(head, year=2019)
 
     print('\n*********************************************')
     print('ANALYZING TIER 3 DEPTH')
     print('*********************************************\n')
     head = join('results', 'tier3_depth')
-    str6, nb6 = analyze_group(head)
+    str6, nb6 = analyze_group(head, year=2019)
+
+
+    # Now RGBD.
+    print('\n*********************************************')
+    print('ANALYZING TIER 1 ... RGBD')
+    print('*********************************************\n')
+    head = join('results', 'tier1_rgbd')
+    str10, nb11 = analyze_group(head, year=2020)
+
+
 
     print('\nNumber of trials we record:')
-    print(nb1, nb2, nb3, nb4, nb5, nb6)
+    print(nb1, nb2, nb3, nb4, nb5, nb6, nb11)
     print('\n\nCopy and paste this for LaTeX:\nstart, end, max, mean')
     print('T1 RGB  '+ str1)
     print('T1 Dep. '+ str2)
+    print('T1 RGBD '+ str10)
     print('T2 RGB  '+ str3)
     print('T2 Dep. '+ str4)
+    print('T2 RGBD '+ '')
     print('T3 RGB  '+ str5)
     print('T3 Dep. '+ str6)
+    print('T3 RGBD '+ '')
