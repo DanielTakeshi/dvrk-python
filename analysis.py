@@ -115,7 +115,7 @@ def analyze_group(head, year):
         ss['max'].append( np.max(data['coverage'][1:]) )
         ss['min'].append( np.min(data['coverage'][1:]) )
         # Special case ... I think I recorded duplicate coverage.
-        if len(data['actions']) == 9:
+        if len(data['actions']) == 9 and (year == 2019):
             assert len(data['d_img']) == 11, len(data['d_img'])
             ss['avg'].append( np.mean(data['coverage'][1:-1]) )  # duplicate at end, so up to -1
         else:
@@ -147,7 +147,7 @@ def analyze_group(head, year):
     print('avg:   {:.1f} +/- {:.1f}'.format(np.mean(ss['avg']), np.std(ss['avg'])) )
 
     # In readable format for LaTeX:
-    _str = '& {:.1f} +/- {:.1f} & {:.1f} +/- {:.1f} & {:.1f} +/- {:.1f} & {:.1f} +/- {:.1f} \\\\'.format(
+    _str = '& {:.1f} +/- {:.0f} & {:.1f} +/- {:.0f} & {:.1f} +/- {:.0f} & {:.1f} +/- {:.0f} \\\\'.format(
             np.mean(ss['beg']),np.std(ss['beg']),
             np.mean(ss['end']),np.std(ss['end']),
             np.mean(ss['max']),np.std(ss['max']),
@@ -175,6 +175,7 @@ if __name__ == "__main__":
     print('Over {} episodes. For LaTeX:\nstart, end, max, mean'.format(nb0))
     print('T1 Depth on Yellow '+ str0)
 
+
     print('\n*********************************************')
     print('ANALYZING TIER 1 COLOR')
     print('*********************************************\n')
@@ -192,6 +193,7 @@ if __name__ == "__main__":
     print('*********************************************\n')
     head = join('results', 'tier2_color')
     str3, nb3 = analyze_group(head, year=2019)
+
 
     print('\n*********************************************')
     print('ANALYZING TIER 2 DEPTH')
@@ -212,24 +214,33 @@ if __name__ == "__main__":
     str6, nb6 = analyze_group(head, year=2019)
 
 
-    # Now RGBD.
     print('\n*********************************************')
     print('ANALYZING TIER 1 ... RGBD')
     print('*********************************************\n')
     head = join('results', 'tier1_rgbd')
-    str10, nb11 = analyze_group(head, year=2020)
+    print('\n*********************************************')
+    str10, nb10 = analyze_group(head, year=2020)
 
+    print('ANALYZING TIER 2 ... RGBD')
+    print('*********************************************\n')
+    head = join('results', 'tier2_rgbd')
+    str11, nb11 = analyze_group(head, year=2020)
+
+    print('ANALYZING TIER 3 ... RGBD')
+    print('*********************************************\n')
+    head = join('results', 'tier3_rgbd')
+    str12, nb12 = analyze_group(head, year=2020)
 
 
     print('\nNumber of trials we record:')
-    print(nb1, nb2, nb3, nb4, nb5, nb6, nb11)
+    print(nb1, nb2, nb3, nb4, nb5, nb6, nb10, nb11, nb12)
     print('\n\nCopy and paste this for LaTeX:\nstart, end, max, mean')
     print('T1 RGB  '+ str1)
-    print('T1 Dep. '+ str2)
+    print('T1 D    '+ str2)
     print('T1 RGBD '+ str10)
     print('T2 RGB  '+ str3)
-    print('T2 Dep. '+ str4)
-    print('T2 RGBD '+ '')
+    print('T2 D    '+ str4)
+    print('T2 RGBD '+ str11)
     print('T3 RGB  '+ str5)
-    print('T3 Dep. '+ str6)
-    print('T3 RGBD '+ '')
+    print('T3 D    '+ str6)
+    print('T3 RGBD '+ str12)
